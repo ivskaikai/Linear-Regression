@@ -55,8 +55,9 @@ if __name__ == '__main__':
                 for j in range(70):
                     Matrix[num][i*70+j]=basic(int(pos[training[K_fold_num][num]][0]),int(pos[training[K_fold_num][num]][1]),15*j+7,15*i+7)
                     #print (i,j),(pos[num][1],pos[num][0]),Matrix[num][i*70+j]
-                    
-        WML=np.dot(np.dot(inv(np.dot(Matrix.transpose(), Matrix)),Matrix.transpose()),train_height)
+        landa=5
+        I_matrix=np.diag(np.diag(np.ones((4900,4900))))
+        WML=np.dot(np.dot(inv(landa*I_matrix+np.dot(Matrix.transpose(), Matrix)),Matrix.transpose()),train_height)
         #print WML
 
         val=np.zeros(4900,dtype=np.float64)
@@ -69,7 +70,7 @@ if __name__ == '__main__':
                     val[i*70+j]=basic(int(pos[validation[K_fold_num][num]][0]),int(pos[validation[K_fold_num][num]][1]),15*j+7,15*i+7)
             MSE=MSE+np.power(np.dot(WML,val)-float(height[validation[K_fold_num][num]][0]),2)
             
-        MSE=MSE/(40000/K_fold)    
+        MSE=MSE/2+landa*np.dot(WML,WML.transpose())/2 
         print MSE
         if min_MSE > MSE:
             WML_min=WML
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         tEnd = time.time()
         print "It cost %f sec" % (tEnd - tStart)
     
-    with open('test.csv', 'w') as csvfile:
+    with open('test2.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         val=np.zeros(4900,dtype=np.float64)
         predict_h=np.zeros(len(pos_test),dtype=np.float64)
@@ -87,6 +88,6 @@ if __name__ == '__main__':
                 for j in range(70):
                     val[i*70+j]=basic(int(pos_test[num][0]),int(pos_test[num][1]),15*j+7,15*i+7)
             predict_h[num]=np.dot(WML_min,val)
-            predict_h.shape=(len(pos_test),1)
             
+        predict_h.shape=(len(pos_test),1)    
         writer.writerows(predict_h)
